@@ -7,6 +7,9 @@
 #include <time.h>
 #include <random>
 
+#define SNAKEHEADX vertex[0]
+#define SNAKEHEADY vertex[1]
+
 using namespace std;
 const unsigned int SCR_WIDTH = 600;
 const unsigned int SCR_HEIGHT = 600;
@@ -23,6 +26,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void windowSize_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
+
 void snakeGame();
 unsigned int vbo, vao;
 int vertexuniformLocation;
@@ -30,7 +34,7 @@ GLFWwindow* window;
 
 int SCRwidth = SCR_WIDTH, SCRheight = SCR_HEIGHT;
 
-int arrayindex = 0;
+
 GLfloat vertex[20000000];
 
 int main()
@@ -84,75 +88,14 @@ int main()
 
 
 
-void processInput(GLFWwindow *window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
-	//if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-	//{
-	//	vertices[1] = 0.5f;
-	//	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //copy vertices into the buffer
-	//}
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-		if (vertexuniformLocation != -1)
-			glUniform4f(vertexuniformLocation, 1.0f, 0.0f, 0.0f, 1.0f);
-
-	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
-		if (vertexuniformLocation != -1)
-			glUniform4f(vertexuniformLocation, 0.0f, 1.0f, 0.0f, 1.0f);
-
-	if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
-		if (vertexuniformLocation != -1)
-			glUniform4f(vertexuniformLocation, 0.0f, 0.0f, 1.0f, 1.0f);
-
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && snakedirection != DOWN)
-		snakedirection = UP;
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && snakedirection != UP)
-		snakedirection = DOWN;
-	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS && snakedirection != RIGHT)
-		snakedirection = LEFT;
-	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS && snakedirection != LEFT)
-		snakedirection = RIGHT;
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-	// make sure the viewport matches the new window dimensions; note that width and 
-	// height will be significantly larger than specified on retina displays.
-	glViewport(0, 0, width, height);
-}
-
-
-void MousePosition_callback(GLFWwindow* window, double x, double y)
-{
-
-	/*if (glfwGetKey(window,GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
-	{
-	cout << x;
-	}
-	else
-	{
-	cout << glfwGetKey(window, GLFW_MOUSE_BUTTON_LEFT);
-	}
-	leftClickPressed = false;
-	*/
-}
-
-
-void windowSize_callback(GLFWwindow* window, int width, int height)
-{
-	SCRheight = height;
-	SCRwidth = width;
-}
-
 
 void snakeGame()
 {
-	unsigned int VBO, VAO;
+	unsigned int VBO, VAO,EBO;
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, arrayindex, vertex, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 0, vertex, GL_STATIC_DRAW);
 
 	glGenVertexArrays(1, &VAO);
 	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
@@ -161,15 +104,38 @@ void snakeGame()
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(0);
 
+	vertex[200] = 0.8f;
+	vertex[201] = 0.8f;
+
+	vertex[202] = 0.8f;
+	vertex[203] = -0.8f;
+
+	vertex[204] = -0.8f;
+	vertex[205] = -0.8f;
+
+	vertex[206] = -0.8f;
+	vertex[207] = 0.8f;
+
+
 	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+	unsigned int indices[] = { // note that we start from 0!
+		 100,101,
+		 102,103,
+		 100,103,
+		 101,102
+		
+	};
 
-
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	
 	// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
 	// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-
+	
 	glEnable(GL_PROGRAM_POINT_SIZE);
 	glPointSize(5);
-
+	glDrawElements(GL_LINES, 8, GL_UNSIGNED_INT, 0);
 	//glVertexAttribI2i(vbo, 100, 200);
 
 	// uncomment this call to draw in wireframe polygons.
@@ -211,7 +177,7 @@ void snakeGame()
 		//glUseProgram(shaderProgram);
 		glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
 								//glLineWidth(100);
-
+	
 		long endTime = clock();
 		if (endTime - startTime >= 50)
 		{
@@ -246,16 +212,20 @@ void snakeGame()
 		break;
 		}
 		*/
+		/////////////////////////////////// die conditions //////////////////////////////////////
 		for (int ii = 2; ii < snakelen; ii += 2) {
-			if (vertex[0] == vertex[ii] && vertex[1] == vertex[ii + 1]) {
+			if (SNAKEHEADX == vertex[ii] && SNAKEHEADY == vertex[ii + 1]) {
 				return;
 			}
 		}
 		
-	
-		if ((vertex[0]+0.01>= BallXpos && vertex[0] - 0.01 <= BallXpos && vertex[1] + 0.01 >= BallYpos && vertex[1] - 0.01 <= BallYpos) )
+		if (SNAKEHEADX >= 0.799f || SNAKEHEADX <= -0.799f || SNAKEHEADY >= 0.799f || SNAKEHEADY <= -0.799f)
+			return;
+
+	 ///////////////////////////////////////////////////////////////////////////////////////////
+		if ((SNAKEHEADX+0.01>= BallXpos && SNAKEHEADX - 0.01 <= BallXpos && SNAKEHEADY + 0.01 >= BallYpos && SNAKEHEADY - 0.01 <= BallYpos) )
 		{
-			flag = false;
+		
 		
 		
 			float newPosX;
@@ -301,14 +271,14 @@ void snakeGame()
 			vertex[snakelen++] = newPosY;
 			vertex[snakelen++] = newPosX;
 			vertex[snakelen++] = newPosY;
-			BallXpos = ((float(rand()) / float(RAND_MAX)) * (2)) - 1;
-			BallYpos = ((float(rand()) / float(RAND_MAX)) * (2)) - 1;
+			BallXpos = ((float(rand()) / float(RAND_MAX)) * (1.5)) - 0.8;
+			BallYpos = ((float(rand()) / float(RAND_MAX)) * (1.5)) - 0.8;
 			vertex[100] = BallXpos;
 			vertex[101] = BallYpos;
 		}
 
 		glDrawArrays(GL_POINTS, 0, 300);
-	
+		glDrawElements(GL_LINES, 8, GL_UNSIGNED_INT, 0);
 
 		// glBindVertexArray(0); // no need to unbind it every time 
 
@@ -346,7 +316,55 @@ void updateSnakeBody(int len,float xpos,float ypos)
 		vertex[i + 2] = vertex[i];
 		vertex[i + 1] = vertex[i - 1];
 	}
-	vertex[0] = xpos;
-	vertex[1] = ypos;
+	SNAKEHEADX = xpos;
+	SNAKEHEADY = ypos;
 	
+}
+
+
+
+void processInput(GLFWwindow *window)
+{
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+	//if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+	//{
+	//	vertices[1] = 0.5f;
+	//	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //copy vertices into the buffer
+	//}
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+		if (vertexuniformLocation != -1)
+			glUniform4f(vertexuniformLocation, 1.0f, 0.0f, 0.0f, 1.0f);
+
+	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+		if (vertexuniformLocation != -1)
+			glUniform4f(vertexuniformLocation, 0.0f, 1.0f, 0.0f, 1.0f);
+
+	if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+		if (vertexuniformLocation != -1)
+			glUniform4f(vertexuniformLocation, 0.0f, 0.0f, 1.0f, 1.0f);
+
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS && snakedirection != DOWN)
+		snakedirection = UP;
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS && snakedirection != UP)
+		snakedirection = DOWN;
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS && snakedirection != RIGHT)
+		snakedirection = LEFT;
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS && snakedirection != LEFT)
+		snakedirection = RIGHT;
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	// make sure the viewport matches the new window dimensions; note that width and 
+	// height will be significantly larger than specified on retina displays.
+	glViewport(0, 0, width, height);
+}
+
+
+
+void windowSize_callback(GLFWwindow* window, int width, int height)
+{
+	SCRheight = height;
+	SCRwidth = width;
 }

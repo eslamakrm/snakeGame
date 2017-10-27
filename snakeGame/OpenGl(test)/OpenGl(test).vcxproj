@@ -23,6 +23,7 @@
     <ProjectGuid>{FEBF4D45-B3F0-4B55-BD2E-52168AD67985}</ProjectGuid>
     <RootNamespace>OpenGltest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <ProjectName>snake</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -117,7 +118,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="C:\Users\Lenovo\source\repos\glad\src\glad.c" />
+    <ClCompile Include="..\glad.c" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
