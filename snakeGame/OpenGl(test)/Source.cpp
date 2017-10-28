@@ -9,7 +9,12 @@
 
 #define SNAKEHEADX vertex[0]
 #define SNAKEHEADY vertex[1]
-
+#define BALLX vertex[4000]
+#define BALLY vertex[4001]
+#define BORDERX 0.5f
+#define BORDERY 0.5f
+#define SNAKE_SPEED 30
+#define BIGBALL_START 10002
 using namespace std;
 const unsigned int SCR_WIDTH = 600;
 const unsigned int SCR_HEIGHT = 600;
@@ -21,7 +26,9 @@ int snakedirection = LEFT;
 void updateSnakeBody(int, float, float);
 
 ////////////////////////////
-
+void drawScore();
+void removeBigBall(int);
+void updateBigBall(int,bool,float,float);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void windowSize_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -72,7 +79,7 @@ int main()
 	///////////////////////////////////////////////////////////////
 #pragma endregion
 
-	for (int i = 0; i < 10000; i++)
+	for (int i = 0; i < 20000000; i++)
 	{
 		vertex[i] = 2.0;
 	}
@@ -104,25 +111,25 @@ void snakeGame()
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(0);
 
-	vertex[200] = 0.8f;
-	vertex[201] = 0.8f;
+	vertex[2000] = BORDERX;
+	vertex[2001] = BORDERY;
 
-	vertex[202] = 0.8f;
-	vertex[203] = -0.8f;
+	vertex[2002] = BORDERX;
+	vertex[2003] = -BORDERY;
 
-	vertex[204] = -0.8f;
-	vertex[205] = -0.8f;
+	vertex[2004] = -BORDERX;
+	vertex[2005] = -BORDERY;
 
-	vertex[206] = -0.8f;
-	vertex[207] = 0.8f;
+	vertex[2006] = -BORDERX;
+	vertex[2007] = BORDERY;
 
 
 	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
 	unsigned int indices[] = { // note that we start from 0!
-		 100,101,
-		 102,103,
-		 100,103,
-		 101,102
+		 1000,1001,
+		 1002,1003,
+		 1000,1003,
+		 1001,1002
 		
 	};
 
@@ -150,7 +157,8 @@ void snakeGame()
 	vertex[snakelen++] = 0.01;
 	vertex[snakelen++] = yPos;
 
-
+	long bigBallStart;
+	long bigBallUpdate;
 	long startTime = clock();
 	long BallStart = clock();
 	float BallXpos;
@@ -158,11 +166,18 @@ void snakeGame()
 
 	BallXpos = 0.1f;
 	BallYpos = 0.1f;
-	vertex[100] = 0.1f;
-	vertex[101] = 0.1f;
-	
+
+	float bigBallX;
+	float bigBallY;
+	BALLX = 0.1f;
+	BALLY = 0.1f;
+	bool updated = false;
 	bool flag = true;
 	srand(time(NULL));
+
+	int score = 0;
+	int bigballscore=0;
+	bool bigBallExist = false;
 	while (!glfwWindowShouldClose(window))
 	{
 		
@@ -179,7 +194,7 @@ void snakeGame()
 								//glLineWidth(100);
 	
 		long endTime = clock();
-		if (endTime - startTime >= 50)
+		if (endTime - startTime >= SNAKE_SPEED)
 		{
 			switch (snakedirection)
 			{
@@ -219,11 +234,11 @@ void snakeGame()
 			}
 		}
 		
-		if (SNAKEHEADX >= 0.799f || SNAKEHEADX <= -0.799f || SNAKEHEADY >= 0.799f || SNAKEHEADY <= -0.799f)
+		if (SNAKEHEADX >= BORDERX-0.001 || SNAKEHEADX <= -BORDERX-0.001 || SNAKEHEADY >= BORDERY-0.001 || SNAKEHEADY <= -BORDERY-0.001)
 			return;
 
 	 ///////////////////////////////////////////////////////////////////////////////////////////
-		if ((SNAKEHEADX+0.01>= BallXpos && SNAKEHEADX - 0.01 <= BallXpos && SNAKEHEADY + 0.01 >= BallYpos && SNAKEHEADY - 0.01 <= BallYpos) )
+		if ((SNAKEHEADX+0.015>= BallXpos && SNAKEHEADX - 0.015 <= BallXpos && SNAKEHEADY + 0.015 >= BallYpos && SNAKEHEADY - 0.015 <= BallYpos) )
 		{
 		
 		
@@ -271,13 +286,84 @@ void snakeGame()
 			vertex[snakelen++] = newPosY;
 			vertex[snakelen++] = newPosX;
 			vertex[snakelen++] = newPosY;
-			BallXpos = ((float(rand()) / float(RAND_MAX)) * (1.5)) - 0.8;
-			BallYpos = ((float(rand()) / float(RAND_MAX)) * (1.5)) - 0.8;
-			vertex[100] = BallXpos;
-			vertex[101] = BallYpos;
+			BallXpos = ((float(rand()) / float(RAND_MAX)) * (2*(BORDERX-0.1))) - (BORDERX - 0.02);
+			BallYpos = ((float(rand()) / float(RAND_MAX)) * (2 * (BORDERY - 0.1))) - (BORDERY - 0.02);
+			BALLX = BallXpos;
+			BALLY = BallYpos;
+			score++;
 		}
 
-		glDrawArrays(GL_POINTS, 0, 300);
+
+
+		////////////////////// big ball ///////////////////////////////////
+		if ((score+1) % (2 * (bigballscore+1)) == 0 && !bigBallExist) //form big ball
+		{
+			bigballscore++;
+			bigBallStart = clock();
+			bigBallUpdate = bigBallStart;
+			bigBallExist = true;
+			bigBallX = ((float(rand()) / float(RAND_MAX)) * (2 * (BORDERX - 0.1))) - (BORDERX-0.02);
+			bigBallY = ((float(rand()) / float(RAND_MAX)) * (2 * (BORDERY - 0.1))) - (BORDERY-0.02);
+			int i = BIGBALL_START;
+			vertex[i++] = bigBallX;
+			vertex[i++] = bigBallY;
+
+			vertex[i++] = bigBallX + 0.01;
+			vertex[i++] = bigBallY + 0.01;
+
+			vertex[i++] = bigBallX - 0.01;
+			vertex[i++] = bigBallY - 0.01;
+
+			vertex[i++] = bigBallX - 0.01;
+			vertex[i++] = bigBallY + 0.01;
+
+			vertex[i++] = bigBallX + 0.01;
+			vertex[i++] = bigBallY - 0.01;
+
+			vertex[i++] = bigBallX-0.01;
+			vertex[i++] = bigBallY;
+
+			vertex[i++] = bigBallX;
+			vertex[i++] = bigBallY-0.01;
+
+			vertex[i++] = bigBallX;
+			vertex[i++] = bigBallY + 0.01;
+
+			vertex[i++] = bigBallX + 0.01;
+			vertex[i++] = bigBallY;
+
+		}
+		
+		if ((long)clock() - bigBallStart >= 8000)
+		{
+			removeBigBall(BIGBALL_START);
+			bigBallExist = false;
+		}
+
+		if (((long)clock() - bigBallUpdate) >= 100 && bigBallExist)
+		{
+			if (!updated)
+			{
+				updateBigBall(BIGBALL_START,false,bigBallX,bigBallY);
+				bigBallUpdate = clock();
+				updated = true;
+			}
+			else
+			{
+				updateBigBall(BIGBALL_START, true, bigBallX, bigBallY);
+				bigBallUpdate = clock();
+				updated = false;
+			}
+
+		}
+		if (bigBallExist && (SNAKEHEADX >= vertex[BIGBALL_START+4]-0.01 && SNAKEHEADX <= vertex[BIGBALL_START+2] + 0.01 && SNAKEHEADY >= vertex[BIGBALL_START+5] - 0.01 && SNAKEHEADY <= vertex[BIGBALL_START+7] + 0.01) )
+		{
+			bigballscore++;
+			removeBigBall(BIGBALL_START);
+			bigBallExist = false;
+		}
+		//////////////////////////////////////////////////////////////////
+		glDrawArrays(GL_POINTS, 0, 20000);
 		glDrawElements(GL_LINES, 8, GL_UNSIGNED_INT, 0);
 
 		// glBindVertexArray(0); // no need to unbind it every time 
@@ -367,4 +453,49 @@ void windowSize_callback(GLFWwindow* window, int width, int height)
 {
 	SCRheight = height;
 	SCRwidth = width;
+}
+
+
+void removeBigBall(int start_index)
+{
+	for (int i = start_index; i <= start_index + 16; i++)
+		vertex[i] = 2.0;
+}
+
+void updateBigBall(int start_index,bool updated,float x,float y)
+{
+	if (updated)
+	{
+		for (int i = start_index; i <= start_index + 9; i++)
+			vertex[i] = 2.0;
+	}
+	else
+	{
+		vertex[start_index++] = x;
+		vertex[start_index++] = y;
+
+		vertex[start_index++] = x + 0.01;
+		vertex[start_index++] = y + 0.01;
+
+		vertex[start_index++] = x - 0.01;
+		vertex[start_index++] = y - 0.01;
+
+		vertex[start_index++] = x - 0.01;
+		vertex[start_index++] = y + 0.01;
+
+		vertex[start_index++] = x + 0.01;
+		vertex[start_index++] = y - 0.01;
+
+		vertex[start_index++] = x - 0.01;
+		vertex[start_index++] = y;
+
+		vertex[start_index++] = x;
+		vertex[start_index++] = y - 0.01;
+
+		vertex[start_index++] = x;
+		vertex[start_index++] = y + 0.01;
+
+		vertex[start_index++] = x + 0.01;
+		vertex[start_index++] = y;
+	}
 }
