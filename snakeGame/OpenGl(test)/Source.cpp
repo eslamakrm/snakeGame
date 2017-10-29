@@ -124,8 +124,8 @@ void snakeGame()
 	vertex[2007] = BORDERY;
 
 
-	// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-	unsigned int indices[] = { // note that we start from 0!
+	
+	unsigned int indices[] = { 
 		 1000,1001,
 		 1002,1003,
 		 1000,1003,
@@ -193,6 +193,8 @@ void snakeGame()
 		glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
 								//glLineWidth(100);
 	
+
+
 		long endTime = clock();
 		if (endTime - startTime >= SNAKE_SPEED)
 		{
@@ -237,16 +239,15 @@ void snakeGame()
 		if (SNAKEHEADX >= BORDERX-0.001 || SNAKEHEADX <= -BORDERX-0.001 || SNAKEHEADY >= BORDERY-0.001 || SNAKEHEADY <= -BORDERY-0.001)
 			return;
 
-	 ///////////////////////////////////////////////////////////////////////////////////////////
+	 /////////////////////////////// eat ball  ////////////////////////////////////////////////////////////
 		if ((SNAKEHEADX+0.015>= BallXpos && SNAKEHEADX - 0.015 <= BallXpos && SNAKEHEADY + 0.015 >= BallYpos && SNAKEHEADY - 0.015 <= BallYpos) )
 		{
-		
-		
-		
+
 			float newPosX;
 			float newPosY;
 			float newPosX2;
 			float newPosY2;
+			//////////////// add new point to snake ////////////////////////
 			if (vertex[snakelen - 1] == vertex[snakelen - 3]) //y changing
 			{
 				if (vertex[snakelen - 1] > vertex[snakelen - 3])
@@ -286,8 +287,10 @@ void snakeGame()
 			vertex[snakelen++] = newPosY;
 			vertex[snakelen++] = newPosX;
 			vertex[snakelen++] = newPosY;
+			///////////////////// generate new ball //////////////////////////////
 			BallXpos = ((float(rand()) / float(RAND_MAX)) * (2*(BORDERX-0.1))) - (BORDERX - 0.02);
 			BallYpos = ((float(rand()) / float(RAND_MAX)) * (2 * (BORDERY - 0.1))) - (BORDERY - 0.02);
+			////////////////////////////////////////////////////////////////////
 			BALLX = BallXpos;
 			BALLY = BallYpos;
 			score++;
@@ -296,7 +299,7 @@ void snakeGame()
 
 
 		////////////////////// big ball ///////////////////////////////////
-		if ((score+1) % (2 * (bigballscore+1)) == 0 && !bigBallExist) //form big ball
+		if ((score+1) % (5 * (bigballscore+1)) == 0 && !bigBallExist) //form big ball
 		{
 			bigballscore++;
 			bigBallStart = clock();
@@ -304,7 +307,7 @@ void snakeGame()
 			bigBallExist = true;
 			bigBallX = ((float(rand()) / float(RAND_MAX)) * (2 * (BORDERX - 0.1))) - (BORDERX-0.02);
 			bigBallY = ((float(rand()) / float(RAND_MAX)) * (2 * (BORDERY - 0.1))) - (BORDERY-0.02);
-			int i = BIGBALL_START;
+			int i = BIGBALL_START; //start index of bigball
 			vertex[i++] = bigBallX;
 			vertex[i++] = bigBallY;
 
@@ -333,13 +336,14 @@ void snakeGame()
 			vertex[i++] = bigBallY;
 
 		}
-		
-		if ((long)clock() - bigBallStart >= 8000)
+		         // after 8 seconds remove bonus ball
+		if (bigBallExist && ( (long)clock() - bigBallStart >= 8000))
 		{
 			removeBigBall(BIGBALL_START);
 			bigBallExist = false;
 		}
 
+		///////// only to update extraball shape (expand and compress) ////////////////
 		if (((long)clock() - bigBallUpdate) >= 100 && bigBallExist)
 		{
 			if (!updated)
@@ -356,6 +360,7 @@ void snakeGame()
 			}
 
 		}
+		///// extraball eat condition
 		if (bigBallExist && (SNAKEHEADX >= vertex[BIGBALL_START+4]-0.01 && SNAKEHEADX <= vertex[BIGBALL_START+2] + 0.01 && SNAKEHEADY >= vertex[BIGBALL_START+5] - 0.01 && SNAKEHEADY <= vertex[BIGBALL_START+7] + 0.01) )
 		{
 			bigballscore++;
