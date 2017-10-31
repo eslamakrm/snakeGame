@@ -1,3 +1,4 @@
+#pragma once
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -7,13 +8,15 @@
 #include <time.h>
 #include <random>
 
+#include <fstream>
+#include <string>
 #define SNAKEHEADX vertex[0]
 #define SNAKEHEADY vertex[1]
 #define BALLX vertex[4000]
 #define BALLY vertex[4001]
 #define BORDERX 0.5f
 #define BORDERY 0.5f
-#define SNAKE_SPEED 30
+#define SNAKE_SPEED 20
 #define BIGBALL_START 10002
 using namespace std;
 const unsigned int SCR_WIDTH = 600;
@@ -26,7 +29,8 @@ int snakedirection = LEFT;
 void updateSnakeBody(int, float, float);
 
 ////////////////////////////
-void drawScore();
+int ReadHighScore();
+bool UpdateHighScore(int);
 void removeBigBall(int);
 void updateBigBall(int,bool,float,float);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -34,7 +38,7 @@ void windowSize_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
 
-void snakeGame();
+int snakeGame();
 unsigned int vbo, vao;
 int vertexuniformLocation;
 GLFWwindow* window;
@@ -46,6 +50,8 @@ GLfloat vertex[20000000];
 
 int main()
 {
+	
+
 #pragma region Window
 
 
@@ -79,6 +85,7 @@ int main()
 	///////////////////////////////////////////////////////////////
 #pragma endregion
 
+	char restart;
 	for (int i = 0; i < 20000000; i++)
 	{
 		vertex[i] = 2.0;
@@ -88,18 +95,41 @@ int main()
 	//colorChangingTriangle();
 	//DrawSquare();
 	//MouseLine(usingPoints);
-	snakeGame();
-	return 0;
+	int currentScore;
+	currentScore = snakeGame();
+	cout << "##############################################################"<<endl;
+	int highScore = ReadHighScore();
+	if (highScore == -1)
+		cout << "Unable to read High score !!!" << endl;
+	else
+		cout << "The Recorded High Score = " << highScore << endl;
+
+	cout << "your Score = ";
+
+	cout << currentScore << endl;
+	if (highScore < currentScore)
+	{
+		cout << "************* New High Score *************" << endl;
+		UpdateHighScore(currentScore);
+	}
+
+	cout << "Try again ? (y,n)" << endl;
+	cin>>restart;
+	 if (restart == 'Y' || restart == 'y')
+		 main();
+		 
+	
+		return 0;
 }
 
 
 
 
 
-void snakeGame()
+int snakeGame()
 {
 	unsigned int VBO, VAO,EBO;
-
+	
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, 0, vertex, GL_STATIC_DRAW);
@@ -159,8 +189,7 @@ void snakeGame()
 
 	long bigBallStart;
 	long bigBallUpdate;
-	long startTime = clock();
-	long BallStart = clock();
+
 	float BallXpos;
 	float BallYpos;
 
@@ -178,8 +207,12 @@ void snakeGame()
 	int score = 0;
 	int bigballscore=0;
 	bool bigBallExist = false;
+	long startTime = clock(); //return processor time consumed by the pre-code excution
+	long BallStart = clock();
+
 	while (!glfwWindowShouldClose(window))
 	{
+		
 		
 		processInput(window);
 		//glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -217,7 +250,7 @@ void snakeGame()
 			}
 			updateSnakeBody(snakelen, xPos, yPos);
 			
-			startTime = endTime;
+			startTime = clock();
 		}
 		//glDrawArrays(GL_POINTS, 0, arrayindex);
 
@@ -232,12 +265,12 @@ void snakeGame()
 		/////////////////////////////////// die conditions //////////////////////////////////////
 		for (int ii = 2; ii < snakelen; ii += 2) {
 			if (SNAKEHEADX == vertex[ii] && SNAKEHEADY == vertex[ii + 1]) {
-				return;
+				glfwSetWindowShouldClose(window, true);
 			}
 		}
 		
 		if (SNAKEHEADX >= BORDERX-0.001 || SNAKEHEADX <= -BORDERX-0.001 || SNAKEHEADY >= BORDERY-0.001 || SNAKEHEADY <= -BORDERY-0.001)
-			return;
+			glfwSetWindowShouldClose(window, true);
 
 	 /////////////////////////////// eat ball  ////////////////////////////////////////////////////////////
 		if ((SNAKEHEADX+0.015>= BallXpos && SNAKEHEADX - 0.015 <= BallXpos && SNAKEHEADY + 0.015 >= BallYpos && SNAKEHEADY - 0.015 <= BallYpos) )
@@ -393,8 +426,13 @@ void snakeGame()
 
 	// glfw: terminate, clearing all previously allocated GLFW resources.
 	// ------------------------------------------------------------------
-	glfwTerminate();
 
+	int currentScore = score + (10 * bigballscore);
+
+	
+	
+	glfwTerminate();
+	return currentScore;
 
 
 }
@@ -503,4 +541,32 @@ void updateBigBall(int start_index,bool updated,float x,float y)
 		vertex[start_index++] = x + 0.01;
 		vertex[start_index++] = y;
 	}
+}
+
+
+int ReadHighScore()
+{
+	ifstream highScoreFile;
+	highScoreFile.open("HighScore.txt");
+	if (!highScoreFile) {
+		return -1;
+	}
+	string sLine;
+	getline(highScoreFile, sLine);
+	
+	highScoreFile.close();
+	return stoi(sLine);
+}
+
+
+bool UpdateHighScore(int score)
+{
+	ofstream highScoreFile;
+	highScoreFile.open("HighScore.txt");
+	if (!highScoreFile) {
+		return false;
+	}
+	highScoreFile.clear();
+	highScoreFile << score;
+	return true;
 }

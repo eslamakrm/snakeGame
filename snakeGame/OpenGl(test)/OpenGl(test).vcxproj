@@ -71,8 +71,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\Lenovo\Documents\OpenGl\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\Lenovo\Documents\OpenGl\Libraries;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\Lenovo\Documents\OpenGl\OpenGL stuff\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\Lenovo\Documents\OpenGl\OpenGL stuff\libraries;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
