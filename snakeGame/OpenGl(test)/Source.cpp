@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <time.h>
 #include <random>
-
 #include <fstream>
 #include <string>
 #define SNAKEHEADX vertex[0]
@@ -52,7 +51,7 @@ int main()
 {
 	
 
-#pragma region Window
+#pragma region WindowInit
 
 
 
